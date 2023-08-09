@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SAYISAL LOTO OYUNU</title>
+  <style>
+    .input-box {
+      width: 60px;
+      height: 17px;
+      text-align: center;
+      border: 1px solid black;
+      vertical-align: top;
+      margin: 5px;
+    }
+
+    .lotoBox {
+      width: 64px;
+      height: 20px;
+      border: 1px solid black;
+      display: inline-block;
+      margin: 5px;
+      vertical-align: top;
+    }
+
+    #submitButton {
+      width: 85px;
+      height: 22px;
+      vertical-align: top;
+      margin: 5px;
+    }
+
+    .result-label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SAYISAL LOTO OYUNU</h1>
+    <div id="inputs">
+      <h2>Aşağıdaki inputlara tahminlerini giriniz.</h2>
+      <input class="input-box" type="text" pattern="[0-9]*" inputmode="numeric">
+      <input class="input-box" type="text" pattern="[0-9]*" inputmode="numeric">
+      <input class="input-box" type="text" pattern="[0-9]*" inputmode="numeric">
+      <input class="input-box" type="text" pattern="[0-9]*" inputmode="numeric">
+      <input class="input-box" type="text" pattern="[0-9]*" inputmode="numeric">
+      <input class="input-box" type="text" pattern="[0-9]*" inputmode="numeric">
+      <button id="submitButton">Tahmin Gir</button>
+    </div>
+    <br><br>
+    
+    <hr>
+    <div id="drawSection">
+      <button id="drawButton" disabled>Kurayı Çek</button>
+      <h3>Loto Sayıları:</h3>
+      <div id="lotoNumbers">
+        <div class="lotoBox"></div>
+        <div class="lotoBox"></div>
+        <div class="lotoBox"></div>
+        <div class="lotoBox"></div>
+        <div class="lotoBox"></div>
+        <div class="lotoBox"></div>
+      </div>
+      <div class="result-label" id="knownNumbersLabel"></div>
+      <div class="result-label" id="matchingCountLabel"></div>
+    </div>
+  </div>
+
+  <script>
+    const inputBoxes = document.querySelectorAll('.input-box');
+    const submitButton = document.getElementById('submitButton');
+    const drawButton = document.getElementById('drawButton');
+    const lotoNumbersDiv = document.getElementById('lotoNumbers');
+    const knownNumbersLabel = document.getElementById('knownNumbersLabel');
+    const matchingCountLabel = document.getElementById('matchingCountLabel');
+    let selectedNumbers = new Set(); 
+
+    inputBoxes.forEach((inputBox, index) => {
+      inputBox.addEventListener('blur', () => {
+        const number = parseInt(inputBox.value);
+        
+        if (selectedNumbers.has(number)) {
+          alert('Aynı tahmin bir kez girilebilir.');
+          inputBox.value = '';
+        } else {
+          selectedNumbers.add(number);
+        }
+      });
+    });
+
+    submitButton.addEventListener('click', () => {
+      let isValid = true;
+      let sortedNumbers = [];
+
+      inputBoxes.forEach(inputBox => {
+        const number = parseInt(inputBox.value);
+        
+        if (isNaN(number) || number < 1 || number > 49) {
+          isValid = false;
+          inputBox.style.borderColor = 'red';
+        } else {
+          inputBox.style.borderColor = '';
+          sortedNumbers.push(number);
+        }
+      });
+
+      if (isValid) {
+        sortedNumbers.sort((a, b) => a - b);
+
+        inputBoxes.forEach((inputBox, index) => {
+          inputBox.value = sortedNumbers[index];
+        });
+
+        submitButton.disabled = true;
+        drawButton.disabled = false;
+      } else {
+        alert('1-49 sayıları arasında bir sayı girmelisiniz.');
+      }
+    });
+
+    drawButton.addEventListener('click', () => {
+      lotoNumbersDiv.style.display = 'block';
+      
+      const lotoBoxes = document.querySelectorAll('.lotoBox');
+      const lotoNumbers = new Set(); 
+
+      while (lotoNumbers.size < lotoBoxes.length) {
+        const number = generateLotoNumber(1, 49);
+        lotoNumbers.add(number);
+      }
+
+      const sortedLotoNumbers = Array.from(lotoNumbers).sort((a, b) => a - b);
+
+      lotoBoxes.forEach((lotoBox, index) => {
+        lotoBox.textContent = sortedLotoNumbers[index];
+      });
+
+      const sortedSelectedNumbers = Array.from(selectedNumbers).sort((a, b) => a - b);
+      const matchingNumbers = getMatchingNumbers(sortedLotoNumbers, sortedSelectedNumbers);
+      const knownNumbersText = matchingNumbers.join(', ');
+      knownNumbersLabel.textContent = `Bilinen Sayılar: ${knownNumbersText}`;
+      matchingCountLabel.textContent = `Bilinen Sayı Adedi: ${matchingNumbers.length}`;
+    });
+
+    function generateLotoNumber(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function getMatchingNumbers(arr1, arr2) {
+      return arr1.filter(item => arr2.includes(item));
+    }
+  </script>
+</body>
+</html>
